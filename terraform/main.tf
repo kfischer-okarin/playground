@@ -53,3 +53,16 @@ resource "aws_autoscaling_group" "instances" {
     }
   }
 }
+
+data "aws_instances" "group_instances" {
+  instance_tags = {
+    "aws:autoscaling:groupName" = aws_autoscaling_group.instances.name
+  }
+
+  instance_state_names = ["running", "stopped"]
+}
+
+
+output "instance_ids" {
+  value = data.aws_instances.group_instances.ids
+}
