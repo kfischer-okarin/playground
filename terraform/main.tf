@@ -57,6 +57,23 @@ resource "aws_autoscaling_group" "instances" {
   }
 }
 
+#  aws --region us-east-1 cloudwatch put-metric-data --metric-name TestMetric --namespace TestMetrics --value 1
+resource "aws_autoscaling_policy" "scaling" {
+  name                   = "scale-with-queue-backlog"
+  adjustment_type        = "ChangeInCapacity"
+  autoscaling_group_name = aws_autoscaling_group.instances.name
+  policy_type            = "TargetTrackingScaling"
+  target_tracking_configuration {
+    customized_metric_specification {
+      namespace = "TestMetrics"
+      metric_name = "TestMetric"
+      statistic = "Average"
+    }
+
+    target_value = 40.0
+  }
+}
+
 data "aws_instances" "group_instances" {
   instance_tags = {
     "aws:autoscaling:groupName" = aws_autoscaling_group.instances.name
@@ -64,7 +81,6 @@ data "aws_instances" "group_instances" {
 
   instance_state_names = ["running", "stopped"]
 }
-
 
 output "instance_ids" {
   value = data.aws_instances.group_instances.ids
