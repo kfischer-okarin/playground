@@ -11,6 +11,9 @@ provider "aws" {
   region = "us-east-1"
 }
 
+resource "aws_sqs_queue" "queue" {
+}
+
 data "aws_ami" "ubuntu" {
   most_recent = true
 
