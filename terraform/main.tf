@@ -27,9 +27,29 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-resource "aws_instance" "instance" {
-  ami           = data.aws_ami.ubuntu.id
+resource "aws_launch_template" "template" {
+  image_id      = data.aws_ami.ubuntu.id
   instance_type = "t3.micro"
+}
 
-  count = 3
+locals {
+  instance_count = 3
+}
+
+resource "aws_autoscaling_group" "instances" {
+  availability_zones = ["us-east-1a"]
+  desired_capacity   = 1
+  max_size           = local.instance_count
+  min_size           = 1
+
+  launch_template {
+    id      = aws_launch_template.template.id
+    version = "$Latest"
+  }
+
+  warm_pool {
+    instance_reuse_policy {
+      reuse_on_scale_in = true
+    }
+  }
 }
